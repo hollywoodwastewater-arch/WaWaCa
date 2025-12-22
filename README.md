@@ -1,12 +1,12 @@
 # WaWaCa: Wastewater Loading & Prep Suite
 
-A modular web app designed for wastewater operators (Grades 1-4) to perform critical calculations and exam prep offline.
+A modular web app designed for wastewater operators (Grades 1-4) to perform critical calculations, exam prep while oline and offline. 
 
 ✨ Core Features
 
-Pounds of Loading Calculator: Quickly calculate lbs/day using the standard formula: $Flow (MGD) \times Concentration (mg/L) \times 8.34$.
+A calculator that includes 10+ of the most used wastewater treatment formulas for operators 
 
-Offline-First: Built as a Progressive Web App (PWA) to work in treatment plants with no cell service.
+Offline-First: Built as a Progressive Web App (PWA) to work in treatment plants with no cell service. (calculator mandatory PWA) others apps fuctional offline only if app supports a PWA design
 
 Operator-Friendly UI: High-contrast colors and large, glove-friendly buttons.
 
@@ -30,9 +30,9 @@ PWA Support: vite-plugin-pwa for offline capabilities.
 
 📅 Roadmap
 
-[ ] Phase 1: Pounds of Loading Calculator (MVP)
+[ ] Phase 1: Wastewater Treatment Calculator (MVP)
 
-[ ] Phase 2: Grade 3 & 4 Exam Prep Quiz Engine
+[ ] Phase 2: Grade 3 & 4 Exam Prep Quiz & study Engine
 
 [ ] Phase 3: Lab Analysis Data Dashboard
 
