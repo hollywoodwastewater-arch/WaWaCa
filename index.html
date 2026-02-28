@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>WaterWorks Pro</title>
+  <meta name="description" content="Professional Wastewater Operations Calculator Suite - Offline PWA" />
+  <meta name="theme-color" content="#0f172a" />
+  
+  <!-- PWA Settings -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="WaterWorks" />
+
+  <!-- PWA Manifest (Data URI for Single-File Portability) -->
+  <link rel="manifest" href='data:application/manifest+json,{
+      "name": "WaterWorks Pro",
+      "short_name": "WaterWorks",
+      "start_url": ".",
+      "display": "standalone",
+      "background_color": "#0f172a",
+      "theme_color": "#0f172a",
+      "orientation": "portrait-primary",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 512 512%27%3E%3Ccircle cx=%27256%27 cy=%27256%27 r=%27256%27 fill=%27%230f172a%27/%3E%3Ccircle cx=%27256%27 cy=%27256%27 r=%27200%27 fill=%27%230ea5e9%27/%3E%3Cpath d=%27M160 190 Q256 120 352 190 Q370 260 350 330 Q256 400 160 330 Q140 260 160 190%27 fill=%27%23fff%27 opacity=%270.9%27/%3E%3C/svg%3E",
+          "sizes": "512x512",
+          "type": "image/svg+xml"
+        },
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 192 192%27%3E%3Ccircle cx=%2796%27 cy=%2796%27 r=%2796%27 fill=%27%230f172a%27/%3E%3Ccircle cx=%2796%27 cy=%2796%27 r=%2775%27 fill=%27%230ea5e9%27/%3E%3Cpath d=%27M60 70 Q96 45 132 70 Q138 95 130 120 Q96 145 60 120 Q52 95 60 70%27 fill=%27%23fff%27 opacity=%270.9%27/%3E%3C/svg%3E",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+  }'>
+  
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='256' fill='%230f172a'/%3E%3Ccircle cx='256' cy='256' r='200' fill='%230ea5e9'/%3E%3Cpath d='M160 190 Q256 120 352 190 Q370 260 350 330 Q256 400 160 330 Q140 260 160 190' fill='white'/%3E%3C/svg%3E">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            water: { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e' },
+            slate: { 850:'#172033', 950:'#0a0f1a' }
+          },
+          fontFamily: {
+            display: ['"Outfit"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Core Libraries (Version Locked for Stability) -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+
+  <style>
+    html, body {
+      overscroll-behavior: none;
+      touch-action: pan-y;
+      height: 100%;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Outfit', system-ui, sans-serif;
+      background-color: #0a0f1a;
+      color: #f1f5f9;
+    }
+    input, textarea { -webkit-user-select: text; user-select: text; }
+    
+    .glass { 
+      background: rgba(15, 23, 42, 0.85); 
+      backdrop-filter: blur(20px); 
+      -webkit-backdrop-filter: blur(20px);
+    }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+    
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(14,165,233,0.3); border-radius: 3px; }
+
+    .gradient-mesh {
+      background: 
+        radial-gradient(ellipse at 20% 0%, rgba(14,165,233,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(6,182,212,0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 0% 50%, rgba(59,130,246,0.08) 0%, transparent 40%);
+    }
+
+    /* Error Overlay */
+    #error-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #0f172a;
+      z-index: 9999;
+      padding: 2rem;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+    }
+  </style>
+
+  <!-- Global Error Handler -->
+  <script>
+    function showOverlay(msg) {
+      const overlay = document.getElementById('error-overlay');
+      const text = document.getElementById('error-text');
+      if (overlay && text) {
+        overlay.style.display = 'flex';
+        text.innerText = msg;
+        console.error(msg);
+      }
+    }
+    window.addEventListener('error', (e) => showOverlay(`Error: ${e.message}\nLine: ${e.lineno}`));
+    window.addEventListener('unhandledrejection', (e) => showOverlay(`Unhandled Rejection:\n${e.reason?.message || e.reason}`));
+  </script>
+</head>
+
+<body class="bg-slate-950 text-slate-100">
+  
+  <div id="root"></div>
+
+  <!-- Error Display Element -->
+  <div id="error-overlay">
+    <div class="text-red-500 font-bold text-xl mb-4">Application Error</div>
+    <div class="text-slate-300 mb-4">Something went wrong. Please check your internet connection and reload.</div>
+    <pre id="error-text" class="bg-slate-900 p-4 rounded border border-red-900 text-red-200 font-mono text-sm overflow-auto max-w-full text-left w-full"></pre>
+    <button onclick="window.location.reload()" class="mt-6 bg-slate-800 text-white px-6 py-2 rounded-lg hover:bg-slate-700">Reload App</button>
+  </div>
+
+  <script type="text/babel">
+    // Safe Library Access
+    const React = window.React;
+    const ReactDOM = window.ReactDOM;
+
+    // Early exit if libraries failed
+    if (!React || !ReactDOM) {
+      throw new Error("Critical libraries (React/ReactDOM) failed to load.");
+    }
+
+    const { useEffect, useMemo, useState, useRef, useCallback } = React;
+
+    // ═══════════════════════════════════════════════════════════════
+    // UTILS
+    // ═══════════════════════════════════════════════════════════════
+    const C = {
+      MGD_TO_GPM: 694.44, LBS_PER_GAL: 8.34, MGD_TO_GPD: 1000000,
+      HP_CONSTANT: 3960, FT3_TO_GAL: 7.48052, PI: Math.PI,
+      AF_TO_GAL: 325851
+    };
+
+    const formatNum = (n, decimals = 2) => {
+      if (n === null || n === undefined || isNaN(n) || !isFinite(n)) return '-';
+      // Do not return '0' string for small numbers, allow true 0
+      const abs = Math.abs(n);
+      if (abs > 0 && (abs < 0.001 || abs > 1e7)) return n.toExponential(2);
+      return n.toLocaleString('en-US', { maximumFractionDigits: decimals });
+    };
+
+    const toFloat = (v) => {
+      if(v === "" || v === null || v === undefined) return null;
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const round = (num) => Math.round((num + Number.EPSILON) * 100) / 100;
+    const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+    const useLocalStorage = (key, initialValue) => {
+      const [value, setValue] = useState(() => {
+        try {
+          const item = window.localStorage.getItem(key);
+          return item ? JSON.parse(item) : initialValue;
+        } catch { return initialValue; }
+      });
+      const setStoredValue = (newValue) => {
+        try {
+          const nextVal = typeof newValue === 'function' ? newValue(value) : newValue;
+          setValue(nextVal);
+          window.localStorage.setItem(key, JSON.stringify(nextVal));
+        } catch (e) { console.error("Storage Error:", e); }
+      };
+      return [value, setStoredValue];
+    };
+
+    const useDebounce = (value, delay) => {
+      const [debouncedValue, setDebouncedValue] = useState(value);
+      useEffect(() => {
+        const handler = setTimeout(() => setDebouncedValue(value), delay);
+        return () => clearTimeout(handler);
+      }, [value, delay]);
+      return debouncedValue;
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // CUSTOM CHART COMPONENT (Native SVG, No Recharts)
+    // ═══════════════════════════════════════════════════════════════
+    const CustomChart = ({ data }) => {
+      // data is array of { hour, level }
+      if (!data || data.length === 0) return null;
+
+      const width = 100; 
+      const height = 50; 
+      const padding = 5;
+
+      // Calculate Range
+      const levels = data.map(d => d.level);
+      const minVal = Math.min(...levels);
+      const maxVal = Math.max(...levels);
+      
+      // Dynamic scaling
+      const chartMin = Math.max(0, minVal - 5);
+      const chartMax = maxVal + 5;
+      const range = chartMax - chartMin || 1;
+
+      const getX = (i) => padding + (i / (data.length - 1)) * (width - 2 * padding);
+      const getY = (val) => height - padding - ((val - chartMin) / range) * (height - 2 * padding);
+
+      const points = data.map((d, i) => `${getX(i)},${getY(d.level)}`).join(" ");
+      const areaPoints = `${getX(0)},${height-padding} ${points} ${getX(data.length-1)},${height-padding}`;
+
+      return (
+        <div className="w-full h-full relative font-mono text-[3px]">
+          <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+            {/* Grid & Axis */}
+            <line x1={padding} y1={padding} x2={padding} y2={height-padding} stroke="#334155" strokeWidth="0.5" />
+            <line x1={padding} y1={height-padding} x2={width-padding} y2={height-padding} stroke="#334155" strokeWidth="0.5" />
+            
+            {/* Area */}
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d={areaPoints} fill="url(#chartGrad)" />
+            
+            {/* Line */}
+            <polyline points={points} fill="none" stroke="#0ea5e9" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+
+            {/* X Axis Labels */}
+            {data.filter((_, i) => i % 4 === 0).map((d, i) => {
+               const originalIndex = i * 4;
+               return (
+                <text key={i} x={getX(originalIndex)} y={height} fill="#64748b" textAnchor="middle">
+                  {d.hour}h
+                </text>
+              );
+            })}
+            
+            {/* Y Axis Guides */}
+            <text x={0} y={getY(chartMax)} fill="#64748b" alignmentBaseline="middle">{Math.round(chartMax)}</text>
+            <text x={0} y={getY(chartMin)} fill="#64748b" alignmentBaseline="middle">{Math.round(chartMin)}</text>
+          </svg>
+        </div>
+      );
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // ICON COMPONENT
+    // ═══════════════════════════════════════════════════════════════
+    const Icon = ({ name, className = "w-5 h-5" }) => {
+      const ref = useRef(null);
+      useEffect(() => {
+        if (ref.current && window.lucide) {
+          const temp = document.createElement('div');
+          // Safe transformation of icon name
+          const iconName = name.replace(/([A-Z])/g, "-$1").toLowerCase().replace(/^-/, "");
+          // Check if icon exists in library
+          if(window.lucide.icons && window.lucide.icons[name]) {
+             const svg = window.lucide.createIcons({
+                icons: { [name]: window.lucide.icons[name] },
+                attrs: { class: className }
+             });
+             // Lucide's createIcons works on DOM nodes, manual inject for safety
+             const iconNode = window.lucide.icons[name];
+             if(iconNode) {
+                 // Fallback manual SVG creation if needed, but standard lucide call is:
+                 ref.current.innerHTML = `<i data-lucide="${iconName}"></i>`;
+                 window.lucide.createIcons({ root: ref.current });
+                 const svgEl = ref.current.querySelector('svg');
+                 if(svgEl) svgEl.setAttribute('class', className);
+             }
+          } else {
+             // Basic fallback using unpkg loaded script global
+             ref.current.innerHTML = `<i data-lucide="${iconName}"></i>`;
+             window.lucide.createIcons({ root: ref.current });
+             const svg = ref.current.querySelector('svg');
+             if (svg) svg.setAttribute('class', className);
+          }
+        }
+      }, [name, className]);
+      
+      // Render placeholder if lucide missing
+      if (!window.lucide) return <span className={`inline-block bg-slate-700/50 rounded-full ${className}`} title={name}></span>;
+      return <span ref={ref} className="inline-flex items-center justify-center" />;
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // UI COMPONENTS
+    // ═══════════════════════════════════════════════════════════════
+    const InputGroup = ({ label, value, onChange, unit, help, placeholder, type="decimal" }) => (
+      <div className="group relative">
+        <label className="text-[10px] font-bold text-water-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+          <span>{label}</span>
+          {help && <span title={help} className="cursor-help"><Icon name="info" className="w-3 h-3 text-slate-500" /></span>}
+        </label>
+        <div className="relative">
+          <input
+            inputMode={type}
+            type="number"
+            className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-lg font-mono text-white outline-none 
+                       focus:border-water-500/50 focus:ring-2 focus:ring-water-500/20 transition-all placeholder:text-slate-600"
+            value={value}
+            placeholder={placeholder || "0"}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+              if (e.key === 'Enter') e.target.blur();
+            }}
+            onWheel={(e) => e.target.blur()}
+          />
+          {unit && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 bg-slate-800 px-2 py-1 rounded-lg">
+              {unit}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+
+    const Segmented = ({ options, value, onChange }) => (
+      <div className="flex bg-slate-900/50 rounded-xl p-1 border border-slate-700/30">
+        {options.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value)}
+            className={`flex-1 px-4 py-2.5 rounded-lg text-xs font-bold transition-all ${
+              value === opt.value 
+                ? "bg-water-600 text-white shadow-lg shadow-water-500/30" 
+                : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    );
+
+    const ResultCard = ({ calc, title }) => {
+      const [showSteps, setShowSteps] = useState(false);
+      const [copied, setCopied] = useState(false);
+
+      useEffect(() => setShowSteps(false), [calc]);
+
+      const handleCopy = async () => {
+        if (!calc) return;
+        const text = `${title || 'Calc'}: ${calc.resultText || formatNum(calc.result)} ${calc.unit || ''}`;
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch (e) {
+          // Fallback if clipboard fails
+          console.warn("Clipboard failed", e);
+        }
+      };
+
+      if (!calc) {
+        return (
+          <div className="h-full min-h-[200px] flex flex-col items-center justify-center p-8 text-center rounded-2xl border-2 border-dashed border-slate-800">
+            <Icon name="calculator" className="w-10 h-10 text-slate-700 mb-3" />
+            <div className="text-slate-500 font-medium">Enter values to calculate</div>
+          </div>
+        );
+      }
+
+      const tones = {
+        success: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+        warn: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+        error: "bg-red-500/10 border-red-500/30 text-red-400",
+        info: "bg-water-500/10 border-water-500/30 text-water-400"
+      };
+
+      return (
+        <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 overflow-hidden animate-fade">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-water-500/5 to-transparent" />
+            <div className="relative z-10">
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Result</div>
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-mono font-bold text-white tracking-tight">
+                  {calc.resultText ?? formatNum(calc.result)}
+                </span>
+                <span className="text-lg text-water-400 font-medium">{calc.unit}</span>
+              </div>
+              {calc.sub && <div className="text-water-300/70 mt-3 text-sm font-medium">{calc.sub}</div>}
+            </div>
+            <button 
+              onClick={handleCopy}
+              className="absolute top-4 right-4 p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors"
+              title="Copy Result"
+            >
+              <Icon name={copied ? "check" : "copy"} className="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+          
+          <div className="p-5 space-y-4">
+            {calc.insight && (
+              <div className={`p-4 rounded-xl border text-sm font-medium flex gap-3 ${tones[calc.tone || 'info']}`}>
+                <Icon name={calc.tone === 'warn' || calc.tone === 'error' ? 'alertTriangle' : calc.tone === 'success' ? 'checkCircle2' : 'info'} className="w-5 h-5 shrink-0" />
+                <div>
+                  <div>{calc.insight}</div>
+                  {calc.insight2 && <div className="mt-1 opacity-70 text-xs">{calc.insight2}</div>}
+                </div>
+              </div>
+            )}
+            {calc.steps && (
+              <div>
+                <button
+                  onClick={() => setShowSteps(!showSteps)}
+                  className="w-full flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-water-400 transition-colors py-2"
+                >
+                  <span>Calculation Steps</span>
+                  <Icon name={showSteps ? "chevronUp" : "chevronDown"} className="w-4 h-4" />
+                </button>
+                {showSteps && (
+                  <div className="mt-2 space-y-1 bg-slate-900/50 p-4 rounded-xl border border-slate-800/50">
+                    {calc.steps.map((s, i) => (
+                      <div key={i} className="font-mono text-xs text-slate-400 py-1 border-b border-slate-800/50 last:border-0">
+                        {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {calc.extra}
+          </div>
+        </div>
+      );
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // CALCULATORS
+    // ═══════════════════════════════════════════════════════════════
+    
+    // ASR Calculator
+    const ASRCalc = () => {
+      const [mode, setMode] = useState("velocity"); // velocity, storage, capacity
+      // Velocity Inputs
+      const [diam, setDiam] = useState("");
+      const [flow, setFlow] = useState("");
+      // Storage Inputs
+      const [days, setDays] = useState("");
+      // Capacity Inputs
+      const [staticLvl, setStatic] = useState("");
+      const [pumpingLvl, setPumping] = useState("");
+
+      const dDiam = useDebounce(diam, 300);
+      const dFlow = useDebounce(flow, 300);
+      const dDays = useDebounce(days, 300);
+      const dStatic = useDebounce(staticLvl, 300);
+      const dPumping = useDebounce(pumpingLvl, 300);
+
+      const calc = useMemo(() => {
+        const Q = toFloat(dFlow);
+        if (Q === null) return null; // FIX: allow 0 inputs
+
+        if (mode === 'velocity') {
+          const D = toFloat(dDiam);
+          if (!D) return null;
+          
+          const qCfs = Q / 448.831;
+          const radiusFt = (D / 2) / 12;
+          const area = Math.PI * Math.pow(radiusFt, 2);
+          const vel = qCfs / area;
+
+          return {
+            resultText: formatNum(vel, 2),
+            unit: "ft/s",
+            sub: `${formatNum(qCfs, 3)} CFS • Area: ${formatNum(area, 3)} ft²`,
+            steps: [
+              `Convert GPM to CFS: ${Q} / 448.83 = ${formatNum(qCfs, 3)} cfs`,
+              `Area = π × (${D}/24)² = ${formatNum(area, 4)} ft²`,
+              `Velocity = Q / Area = ${formatNum(qCfs, 3)} / ${formatNum(area, 4)} = ${formatNum(vel, 2)} ft/s`
+            ],
+            insight: vel > 10 ? "Velocity exceeds recommended 10 ft/s limit for injection wells." : vel < 2 ? "Velocity low - ensure sufficient scour if needed." : "Velocity within typical ASR injection range (2-10 ft/s).",
+            tone: vel > 10 ? "warn" : "success"
+          };
+        } else if (mode === 'storage') {
+          const T = toFloat(dDays);
+          if (T === null) return null;
+
+          const totalGal = Q * 1440 * T;
+          const af = totalGal / C.AF_TO_GAL;
+          const mg = totalGal / 1000000;
+
+          return {
+            resultText: formatNum(af, 2),
+            unit: "Acre-Feet",
+            sub: `${formatNum(mg, 2)} MG • ${formatNum(totalGal, 0)} Gallons`,
+            steps: [
+              `Total Gal = ${Q} GPM × 1440 min/day × ${T} days = ${formatNum(totalGal)} gal`,
+              `Acre-Feet = ${formatNum(totalGal)} / 325,851 = ${formatNum(af, 2)} AF`,
+              `Million Gallons = ${formatNum(totalGal)} / 1,000,000 = ${formatNum(mg, 2)} MG`
+            ],
+            insight: "Total accumulated recharge volume.",
+            tone: "info"
+          };
+        } else {
+          const S = toFloat(dStatic);
+          const P = toFloat(dPumping);
+          if (S === null || P === null) return null;
+
+          const drawdown = Math.abs(P - S);
+          if (drawdown === 0) return { resultText: "Error", insight: "No drawdown detected.", tone: "error" };
+          const sc = Q / drawdown;
+
+          return {
+            resultText: formatNum(sc, 2),
+            unit: "GPM/ft",
+            sub: `Drawdown: ${formatNum(drawdown, 2)} ft`,
+            steps: [
+              `Drawdown = |${P} - ${S}| = ${formatNum(drawdown, 2)} ft`,
+              `Specific Capacity = Flow / Drawdown`,
+              `SC = ${Q} GPM / ${formatNum(drawdown, 2)} ft = ${formatNum(sc, 2)} GPM/ft`
+            ],
+            insight: sc < 1 ? "Low specific capacity - possible clogging or low permeability." : "Well performance indicator calculated.",
+            tone: sc < 1 ? "warn" : "success"
+          };
+        }
+      }, [mode, dDiam, dFlow, dDays, dStatic, dPumping]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <Segmented 
+              options={[
+                {label:"Velocity", value:"velocity"}, 
+                {label:"Recharge", value:"storage"},
+                {label:"Spec. Cap.", value:"capacity"}
+              ]} 
+              value={mode} 
+              onChange={setMode} 
+            />
+            
+            <InputGroup label="Flow Rate" value={flow} onChange={setFlow} unit="GPM" />
+            
+            {mode === 'velocity' && (
+              <InputGroup label="Casing Diameter" value={diam} onChange={setDiam} unit="inches" />
+            )}
+            
+            {mode === 'storage' && (
+              <InputGroup label="Duration" value={days} onChange={setDays} unit="Days" />
+            )}
+            
+            {mode === 'capacity' && (
+              <div className="grid grid-cols-2 gap-4">
+                <InputGroup label="Static Level" value={staticLvl} onChange={setStatic} unit="ft" />
+                <InputGroup label="Pumping Level" value={pumpingLvl} onChange={setPumping} unit="ft" />
+              </div>
+            )}
+          </div>
+          <ResultCard calc={calc} title={mode === 'velocity' ? 'Injection Velocity' : mode === 'storage' ? 'Recharge Volume' : 'Specific Capacity'} />
+        </div>
+      );
+    };
+
+    const LoadingRate = () => {
+      const [flow, setFlow] = useState("");
+      const [conc, setConc] = useState("");
+      const dFlow = useDebounce(flow, 300);
+      const dConc = useDebounce(conc, 300);
+
+      const calc = useMemo(() => {
+        const Q = toFloat(dFlow); const mgL = toFloat(dConc);
+        if (Q === null || mgL === null) return null;
+        const lbs = Q * mgL * C.LBS_PER_GAL;
+        return {
+          result: lbs, unit: "lbs/day",
+          steps: [`${Q} MGD × ${mgL} mg/L × 8.34 = ${formatNum(lbs)} lbs/day`],
+          insight: "Mass loading calculated using the pounds formula.", tone: "info"
+        };
+      }, [dFlow, dConc]);
+      
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Flow Rate" value={flow} onChange={setFlow} unit="MGD" />
+            <InputGroup label="Concentration" value={conc} onChange={setConc} unit="mg/L" />
+          </div>
+          <ResultCard calc={calc} title="Loading Rate" />
+        </div>
+      );
+    };
+
+    const RASRate = () => {
+      const [mode, setMode] = useState("std");
+      const [q, setQ] = useState("");
+      const [mlss, setMlss] = useState("");
+      const [rasTss, setRasTss] = useState("");
+      
+      const dq = useDebounce(q, 300);
+      const dmlss = useDebounce(mlss, 300);
+      const dras = useDebounce(rasTss, 300);
+
+      const calc = useMemo(() => {
+        const Q = toFloat(dq); const M = toFloat(dmlss); const R = toFloat(dras);
+        if (Q === null || M === null || R === null) return null;
+        if (R <= M) return { resultText: "Error", insight: "RAS TSS must be greater than MLSS", tone: "error" };
+        const rasFlow = Q * (M / (R - M));
+        const rasPct = (rasFlow/Q)*100;
+        return {
+          resultText: `${formatNum(rasFlow, 3)} MGD`, unit: `(${formatNum(rasPct, 1)}%)`,
+          steps: [`RAS% = MLSS / (RAS TSS - MLSS)`, `RAS% = ${M} / (${R} - ${M}) = ${formatNum(rasPct/100, 4)}`, `RAS Flow = ${Q} × ${formatNum(rasPct/100, 4)} = ${formatNum(rasFlow, 3)} MGD`],
+          insight: (rasPct < 30 || rasPct > 150) ? "RAS rate outside typical 30-150% range." : "RAS Rate within typical range (30-150%).", 
+          tone: (rasPct < 30 || rasPct > 150) ? "warn" : "success"
+        };
+      }, [mode, dq, dmlss, dras]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Influent Flow (Q)" value={q} onChange={setQ} unit="MGD" />
+            <InputGroup label="MLSS" value={mlss} onChange={setMlss} unit="mg/L" />
+            <InputGroup label="RAS TSS" value={rasTss} onChange={setRasTss} unit="mg/L" />
+          </div>
+          <ResultCard calc={calc} title="RAS Rate" />
+        </div>
+      );
+    };
+
+    const TankVolume = ({ setLastVolume, goTo }) => {
+      const [shape, setShape] = useState("cyl");
+      const [d, setD] = useState(""); const [depth, setDepth] = useState(""); 
+      const [l, setL] = useState(""); const [w, setW] = useState("");
+      
+      const dd = useDebounce(d, 300); const ddepth = useDebounce(depth, 300);
+      const dl = useDebounce(l, 300); const dw = useDebounce(w, 300);
+
+      const calc = useMemo(() => {
+        let ft3 = 0, area = 0;
+        if(shape === "cyl") {
+          const D = toFloat(dd); const H = toFloat(ddepth); 
+          if(D === null || H === null) return null;
+          area = 0.785 * D * D; ft3 = area * H;
+        } else {
+          const L = toFloat(dl); const W = toFloat(dw); const H = toFloat(ddepth); 
+          if(L === null || W === null || H === null) return null;
+          area = L * W; ft3 = area * H;
+        }
+        const gal = ft3 * C.FT3_TO_GAL; const mg = gal / 1000000;
+        setTimeout(() => setLastVolume && setLastVolume({ volumeMG: mg, area, volumeFt3: ft3 }), 0);
+        return {
+          resultText: `${formatNum(mg, 4)} MG`, unit: "", 
+          sub: `${formatNum(gal, 0)} gal • ${formatNum(ft3, 1)} ft³ • ${formatNum(area, 1)} ft² surface`,
+          steps: [
+            shape === "cyl" ? `Area = 0.785 × ${dd}² = ${formatNum(area)} ft²` : `Area = ${dl} × ${dw} = ${formatNum(area)} ft²`,
+            `Volume = ${formatNum(area)} × ${ddepth} = ${formatNum(ft3)} ft³`,
+            `Gallons = ${formatNum(ft3)} × 7.48 = ${formatNum(gal)}`
+          ],
+          insight: "Volume calculated. Use in Detention Time or Clarifier calcs.", tone: "success",
+          extra: goTo && (
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => goTo('detention')} className="flex-1 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-700 transition-colors">
+                → Detention Time
+              </button>
+              <button onClick={() => goTo('clarifier')} className="flex-1 py-2.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-700 transition-colors">
+                → Clarifier
+              </button>
+            </div>
+          )
+        };
+      }, [shape, dd, ddepth, dl, dw, setLastVolume, goTo]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <Segmented options={[{label:"Circular", value:"cyl"}, {label:"Rectangular", value:"rect"}]} value={shape} onChange={setShape} />
+            {shape === "cyl" ? (
+              <InputGroup label="Diameter" value={d} onChange={setD} unit="ft" />
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <InputGroup label="Length" value={l} onChange={setL} unit="ft" />
+                <InputGroup label="Width" value={w} onChange={setW} unit="ft" />
+              </div>
+            )}
+            <InputGroup label="Depth / Height" value={depth} onChange={setDepth} unit="ft" />
+          </div>
+          <ResultCard calc={calc} title="Tank Volume" />
+        </div>
+      );
+    };
+
+    const PipeVolume = () => {
+      const [d, setD] = useState(""); const [l, setL] = useState("");
+      const dd = useDebounce(d, 300); const dl = useDebounce(l, 300);
+      
+      const calc = useMemo(() => {
+        const diam = toFloat(dd); const len = toFloat(dl); 
+        if (diam === null || len === null) return null;
+        const radiusFt = (diam / 2) / 12;
+        const vol_ft3 = Math.PI * Math.pow(radiusFt, 2) * len;
+        const gals = vol_ft3 * C.FT3_TO_GAL;
+        return { 
+          resultText: `${formatNum(gals, 1)} gal`, unit: "", 
+          sub: `${formatNum(vol_ft3, 3)} ft³`,
+          steps: [
+            `Radius = ${diam}/2 = ${diam/2}" = ${formatNum(radiusFt, 4)} ft`,
+            `Area = π × ${formatNum(radiusFt, 4)}² = ${formatNum(Math.PI * radiusFt * radiusFt, 4)} ft²`,
+            `Volume = ${formatNum(Math.PI * radiusFt * radiusFt, 4)} × ${len} = ${formatNum(vol_ft3, 3)} ft³`,
+            `Gallons = ${formatNum(vol_ft3, 3)} × 7.48 = ${formatNum(gals, 1)}`
+          ], 
+          insight: "Pipe volume calculated.", tone: "info" 
+        };
+      }, [dd, dl]);
+      
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Pipe Diameter" value={d} onChange={setD} unit="inches" />
+            <InputGroup label="Pipe Length" value={l} onChange={setL} unit="ft" />
+          </div>
+          <ResultCard calc={calc} title="Pipe Volume" />
+        </div>
+      );
+    };
+
+    const DetentionTime = ({ lastVol }) => {
+      const [v, setV] = useState(""); const [q, setQ] = useState("");
+      useEffect(() => { if(lastVol?.volumeMG && !v) setV(String(lastVol.volumeMG.toFixed(4))); }, [lastVol]);
+      const dv = useDebounce(v, 300); const dq = useDebounce(q, 300);
+      
+      const calc = useMemo(() => {
+        const V = toFloat(dv); const Q = toFloat(dq); 
+        if(V === null || Q === null) return null;
+        const days = V / Q;
+        const hrs = days * 24;
+        const mins = hrs * 60;
+        return { 
+          resultText: `${formatNum(hrs, 2)} hrs`, unit: "", 
+          sub: `${formatNum(days, 4)} days • ${formatNum(mins, 0)} minutes`,
+          steps: [`DT = Volume / Flow`, `DT = ${V} MG / ${Q} MGD = ${formatNum(days, 4)} days`, `Hours = ${formatNum(days, 4)} × 24 = ${formatNum(hrs, 2)}`], 
+          insight: hrs < 2 ? "Short detention time - may affect treatment." : hrs > 48 ? "Long detention - check for stagnation." : "Detention time within typical range.", 
+          tone: hrs < 2 ? "warn" : hrs > 48 ? "warn" : "success" 
+        };
+      }, [dv, dq]);
+      
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Tank Volume" value={v} onChange={setV} unit="MG" placeholder="From Tank calc" />
+            <InputGroup label="Flow Rate" value={q} onChange={setQ} unit="MGD" />
+          </div>
+          <ResultCard calc={calc} title="Detention Time" />
+        </div>
+      );
+    };
+
+    const Clarifier = ({ lastVol }) => {
+      const [flow, setFlow] = useState(""); const [area, setArea] = useState("");
+      useEffect(() => { if(lastVol?.area && !area) setArea(String(lastVol.area.toFixed(1))); }, [lastVol]);
+      const df = useDebounce(flow, 300); const da = useDebounce(area, 300);
+      
+      const calc = useMemo(() => {
+        const Q = toFloat(df); const A = toFloat(da); 
+        if(Q === null || A === null) return null;
+        const sor = (Q * 1000000) / A;
+        return { 
+          resultText: `${formatNum(sor, 0)} gpd/ft²`, unit: "SOR", 
+          steps: [`SOR = Flow (gpd) / Surface Area`, `SOR = (${Q} × 1,000,000) / ${A}`, `SOR = ${formatNum(sor, 0)} gpd/ft²`], 
+          insight: sor > 1000 ? "High SOR - check for solids carryover." : sor < 300 ? "Low SOR - clarifier may be oversized." : "Normal SOR range (300-1000 gpd/ft²).", 
+          tone: sor > 1000 ? "warn" : sor < 300 ? "info" : "success" 
+        };
+      }, [df, da]);
+      
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Flow Rate" value={flow} onChange={setFlow} unit="MGD" />
+            <InputGroup label="Surface Area" value={area} onChange={setArea} unit="ft²" placeholder="From Tank calc" />
+          </div>
+          <ResultCard calc={calc} title="Surface Overflow Rate" />
+        </div>
+      );
+    };
+
+    const FMRatio = () => {
+      const [bod, setBod] = useState("");
+      const [q, setQ] = useState("");
+      const [vol, setVol] = useState("");
+      const [mlss, setMlss] = useState("");
+      const [pct, setPct] = useState("");
+
+      const dbod = useDebounce(bod, 300);
+      const dq = useDebounce(q, 300);
+      const dvol = useDebounce(vol, 300);
+      const dmlss = useDebounce(mlss, 300);
+      const dpct = useDebounce(pct, 300);
+
+      const calc = useMemo(() => {
+        const BOD = toFloat(dbod);
+        const Q = toFloat(dq);
+        const V = toFloat(dvol);
+        const M = toFloat(dmlss);
+        const P = toFloat(dpct);
+
+        if (BOD === null || Q === null || V === null || M === null) return null;
+
+        const bodLbs = BOD * Q * 8.34;
+        const mlvssConc = P ? M * (P / 100) : M;
+        const mlvssLbs = mlvssConc * V * 8.34;
+        if (!mlvssLbs) return null;
+        const fm = bodLbs / mlvssLbs;
+
+        return {
+          resultText: formatNum(fm, 3), unit: "lb BOD/lb MLVSS",
+          steps: [
+            `Food (F) = ${BOD} mg/L × ${Q} MGD × 8.34 = ${formatNum(bodLbs)} lbs/day`,
+            P ? `MLVSS = ${M} × ${P}% = ${formatNum(mlvssConc)} mg/L` : `Using MLSS directly: ${M} mg/L`,
+            `Microorganisms (M) = ${formatNum(mlvssConc)} × ${V} MG × 8.34 = ${formatNum(mlvssLbs)} lbs`,
+            `F/M = ${formatNum(bodLbs)} / ${formatNum(mlvssLbs)} = ${formatNum(fm, 3)}`
+          ],
+          insight: fm < 0.2 ? "Low F/M - Extended aeration / old sludge." : fm > 0.5 ? "High F/M - High rate / young sludge." : "Optimal range (0.2 - 0.5) for conventional AS.",
+          insight2: fm < 0.05 ? "Very low - check BOD loading." : fm > 1.0 ? "Very high - may need more MLSS." : null,
+          tone: (fm >= 0.2 && fm <= 0.5) ? "success" : "info"
+        };
+      }, [dbod, dq, dvol, dmlss, dpct]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="BOD Concentration" value={bod} onChange={setBod} unit="mg/L" />
+            <InputGroup label="Flow Rate" value={q} onChange={setQ} unit="MGD" />
+            <InputGroup label="Aeration Tank Volume" value={vol} onChange={setVol} unit="MG" />
+            <InputGroup label="MLSS Concentration" value={mlss} onChange={setMlss} unit="mg/L" />
+            <InputGroup label="Volatile % (Optional)" value={pct} onChange={setPct} unit="%" help="Enter to calculate MLVSS from MLSS" placeholder="e.g. 70" />
+          </div>
+          <ResultCard calc={calc} title="F/M Ratio" />
+        </div>
+      );
+    };
+
+    const MCRT = () => {
+      const [vol, setVol] = useState("");
+      const [mlss, setMlss] = useState("");
+      const [qw, setQw] = useState("");
+      const [xw, setXw] = useState("");
+      const [qe, setQe] = useState("");
+      const [xe, setXe] = useState("");
+
+      const dvol = useDebounce(vol, 300);
+      const dmlss = useDebounce(mlss, 300);
+      const dqw = useDebounce(qw, 300);
+      const dxw = useDebounce(xw, 300);
+      const dqe = useDebounce(qe, 300);
+      const dxe = useDebounce(xe, 300);
+
+      const calc = useMemo(() => {
+        const V = toFloat(dvol);
+        const M = toFloat(dmlss);
+        const Qw = toFloat(dqw);
+        const Xw = toFloat(dxw);
+        const Qe = toFloat(dqe);
+        const Xe = toFloat(dxe) || 0;
+
+        if (V === null || M === null || Qw === null || Xw === null || Qe === null) return null;
+
+        const inventory = V * M * 8.34;
+        const wasLoss = Qw * Xw * 8.34;
+        const effLoss = Qe * Xe * 8.34;
+        const totalLoss = wasLoss + effLoss;
+
+        if (!totalLoss) return null;
+        const mcrt = inventory / totalLoss;
+
+        return {
+          resultText: `${formatNum(mcrt, 1)} days`, unit: "SRT",
+          steps: [
+            `Inventory = ${V} MG × ${M} mg/L × 8.34 = ${formatNum(inventory)} lbs`,
+            `WAS Loss = ${Qw} MGD × ${Xw} mg/L × 8.34 = ${formatNum(wasLoss)} lbs/day`,
+            `Effluent Loss = ${Qe} MGD × ${Xe || 0} mg/L × 8.34 = ${formatNum(effLoss)} lbs/day`,
+            `MCRT = ${formatNum(inventory)} / (${formatNum(wasLoss)} + ${formatNum(effLoss)}) = ${formatNum(mcrt, 1)} days`
+          ],
+          insight: mcrt < 3 ? "Short SRT - high F/M, young sludge." : mcrt > 20 ? "Long SRT - extended aeration, old sludge." : "Typical range for conventional AS (5-15 days).",
+          tone: (mcrt >= 5 && mcrt <= 15) ? "success" : "info"
+        };
+      }, [dvol, dmlss, dqw, dxw, dqe, dxe]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Aeration Volume" value={vol} onChange={setVol} unit="MG" />
+            <InputGroup label="MLSS" value={mlss} onChange={setMlss} unit="mg/L" />
+            <div className="grid grid-cols-2 gap-4">
+              <InputGroup label="WAS Flow" value={qw} onChange={setQw} unit="MGD" />
+              <InputGroup label="WAS TSS" value={xw} onChange={setXw} unit="mg/L" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <InputGroup label="Effluent Flow" value={qe} onChange={setQe} unit="MGD" />
+              <InputGroup label="Effluent TSS" value={xe} onChange={setXe} unit="mg/L" placeholder="Optional" />
+            </div>
+          </div>
+          <ResultCard calc={calc} title="Mean Cell Residence Time" />
+        </div>
+      );
+    };
+
+    const Chlorine = () => {
+      const [q, setQ] = useState("");
+      const [dose, setDose] = useState("");
+      const dq = useDebounce(q, 300);
+      const ddose = useDebounce(dose, 300);
+
+      const calc = useMemo(() => {
+        const Q = toFloat(dq);
+        const D = toFloat(ddose);
+        if (Q === null || D === null) return null;
+        const lbs = Q * D * 8.34;
+        return {
+          resultText: `${formatNum(lbs, 1)} lbs/day`, unit: "",
+          steps: [`Cl₂ (lbs/day) = Flow × Dose × 8.34`, `= ${Q} MGD × ${D} mg/L × 8.34`, `= ${formatNum(lbs, 1)} lbs/day`],
+          insight: "Pure chlorine required. Adjust for solution strength as needed.",
+          tone: "info"
+        };
+      }, [dq, ddose]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Flow Rate" value={q} onChange={setQ} unit="MGD" />
+            <InputGroup label="Target Dose" value={dose} onChange={setDose} unit="mg/L" />
+          </div>
+          <ResultCard calc={calc} title="Chlorine Dosage" />
+        </div>
+      );
+    };
+
+    const Digester = () => {
+      const [inV, setIn] = useState("");
+      const [outV, setOut] = useState("");
+      const di = useDebounce(inV, 300);
+      const doV = useDebounce(outV, 300);
+
+      const calc = useMemo(() => {
+        const i = toFloat(di);
+        const o = toFloat(doV);
+        if (i === null || o === null) return null;
+        if (o >= i) return { resultText: "Error", insight: "VS Out must be less than VS In", tone: "error" };
+
+        const inDec = i / 100;
+        const outDec = o / 100;
+        const num = inDec - outDec;
+        const den = inDec - (inDec * outDec);
+
+        if (den === 0) return { resultText: "Error", tone: "error" };
+        const red = (num / den) * 100;
+
+        return {
+          resultText: `${formatNum(red, 1)}%`, unit: "VS Reduction",
+          steps: [
+            `Van Kleeck Formula:`,
+            `VS In = ${i}% = ${formatNum(inDec, 4)}`,
+            `VS Out = ${o}% = ${formatNum(outDec, 4)}`,
+            `Numerator = ${formatNum(inDec, 4)} - ${formatNum(outDec, 4)} = ${formatNum(num, 4)}`,
+            `Denominator = ${formatNum(inDec, 4)} - (${formatNum(inDec, 4)} × ${formatNum(outDec, 4)}) = ${formatNum(den, 4)}`,
+            `Reduction = (${formatNum(num, 4)} / ${formatNum(den, 4)}) × 100 = ${formatNum(red, 1)}%`
+          ],
+          insight: red >= 38 ? "Meets EPA 38% VS reduction requirement for Class B biosolids." : "Below 38% EPA requirement - check digester operation.",
+          tone: red >= 38 ? "success" : "warn"
+        };
+      }, [di, doV]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Volatile Solids In" value={inV} onChange={setIn} unit="%" placeholder="e.g. 70" />
+            <InputGroup label="Volatile Solids Out" value={outV} onChange={setOut} unit="%" placeholder="e.g. 50" />
+          </div>
+          <ResultCard calc={calc} title="VS Reduction (Van Kleeck)" />
+        </div>
+      );
+    };
+
+    const PumpCalc = () => {
+      const [gpm, setGpm] = useState("");
+      const [head, setHead] = useState("");
+      const [hp, setHp] = useState("");
+      const dgpm = useDebounce(gpm, 300);
+      const dhead = useDebounce(head, 300);
+      const dhp = useDebounce(hp, 300);
+
+      const calc = useMemo(() => {
+        const G = toFloat(dgpm);
+        const H = toFloat(dhead);
+        const HP = toFloat(dhp);
+        if (G === null || H === null || HP === null) return null;
+
+        const whp = (G * H) / 3960;
+        const eff = (whp / HP) * 100;
+
+        return {
+          resultText: `${formatNum(eff, 1)}%`, unit: "Efficiency",
+          sub: `Water HP: ${formatNum(whp, 2)} hp`,
+          steps: [
+            `Water HP = (GPM × Head) / 3960`,
+            `= (${G} × ${H}) / 3960 = ${formatNum(whp, 2)} hp`,
+            `Efficiency = Water HP / Motor HP × 100`,
+            `= ${formatNum(whp, 2)} / ${HP} × 100 = ${formatNum(eff, 1)}%`
+          ],
+          insight: eff < 50 ? "Low efficiency - check pump condition." : eff > 85 ? "Excellent efficiency." : "Typical pump efficiency range.",
+          tone: eff < 50 ? "warn" : eff > 70 ? "success" : "info"
+        };
+      }, [dgpm, dhead, dhp]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <InputGroup label="Flow Rate" value={gpm} onChange={setGpm} unit="GPM" />
+            <InputGroup label="Total Dynamic Head" value={head} onChange={setHead} unit="ft" />
+            <InputGroup label="Motor Horsepower" value={hp} onChange={setHp} unit="HP" />
+          </div>
+          <ResultCard calc={calc} title="Pump Efficiency" />
+        </div>
+      );
+    };
+
+    const UnitConverter = () => {
+      const [val, setVal] = useLocalStorage("wwp_conv_val", "");
+      const [cat, setCat] = useLocalStorage("wwp_conv_cat", "flow");
+      const [u1, setU1] = useLocalStorage("wwp_conv_u1", "MGD");
+      const [u2, setU2] = useLocalStorage("wwp_conv_u2", "GPM");
+
+      const units = {
+        flow: { MGD: 1, GPM: 694.44, GPD: 1000000, CFS: 1.547, LPS: 43.81 },
+        vol: { MG: 1, Gallons: 1000000, "ft³": 133680.56, ML: 3.785, "m³": 3785.41, "Acre-Ft": 3.06889 },
+        mass: { lbs: 1, kg: 0.453592, tons: 0.0005 },
+        len: { ft: 1, m: 0.3048, "in": 12, cm: 30.48 }
+      };
+
+      const updateCat = (c) => {
+        setCat(c);
+        const keys = Object.keys(units[c]);
+        setU1(keys[0]);
+        setU2(keys[1]);
+      };
+
+      const calc = useMemo(() => {
+        const v = toFloat(val);
+        if (v === null || !units[cat] || !units[cat][u1] || !units[cat][u2]) return null;
+        const res = v * (units[cat][u2] / units[cat][u1]);
+        return { resultText: formatNum(res, 4), unit: u2, tone: "info" };
+      }, [val, cat, u1, u2]);
+
+      return (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <Segmented 
+              options={[
+                {label:"Flow", value:"flow"}, 
+                {label:"Volume", value:"vol"}, 
+                {label:"Mass", value:"mass"},
+                {label:"Length", value:"len"}
+              ]} 
+              value={cat} 
+              onChange={updateCat} 
+            />
+            <InputGroup label="Value" value={val} onChange={setVal} />
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <select 
+                className="bg-slate-900/50 border border-slate-700/50 p-3 rounded-xl font-bold text-white outline-none focus:border-water-500/50" 
+                value={u1} 
+                onChange={e => setU1(e.target.value)}
+              >
+                {units[cat] && Object.keys(units[cat]).map(k => <option key={k} value={k}>{k}</option>)}
+              </select>
+              <Icon name="arrowRight" className="text-slate-600 w-5 h-5" />
+              <select 
+                className="bg-slate-900/50 border border-slate-700/50 p-3 rounded-xl font-bold text-white outline-none focus:border-water-500/50" 
+                value={u2} 
+                onChange={e => setU2(e.target.value)}
+              >
+                {units[cat] && Object.keys(units[cat]).map(k => <option key={k} value={k}>{k}</option>)}
+              </select>
+            </div>
+          </div>
+          <ResultCard calc={calc} title="Unit Converter" />
+        </div>
+      );
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // FLOWPRO SIMULATOR
+    // ═══════════════════════════════════════════════════════════════
+
+    const FlowProSimulator = () => {
+      const [wells, setWells] = useLocalStorage('wwp_wells', []);
+      const [reservoirs, setReservoirs] = useLocalStorage('wwp_reservoirs', []);
+      const [cityData, setCityData] = useLocalStorage('wwp_city', { influent: '', effluent: '' });
+      const [simResults, setSimResults] = useState([]);
+      const [recommendation, setRecommendation] = useState(null);
+      const [editingWell, setEditingWell] = useState(null);
+      const [editingRes, setEditingRes] = useState(null);
+
+      const cleanNum = (val) => {
+        if (val === undefined || val === null || val === '') return 0;
+        const num = parseFloat(String(val).replace(/,/g, ''));
+        return isNaN(num) ? 0 : num;
+      };
+
+      const saveWell = (well) => {
+        if (!well.name) return;
+        let newWells = [...wells];
+        if (well.id) {
+          const idx = newWells.findIndex(w => w.id === well.id);
+          if (idx >= 0) newWells[idx] = well;
+        } else {
+          well.id = generateId();
+          newWells.push(well);
+        }
+        setWells(newWells);
+        setEditingWell(null);
+      };
+
+      const deleteWell = (id) => {
+        setWells(wells.filter(w => w.id !== id));
+      };
+
+      const saveRes = (res) => {
+        if (!res.name) return;
+        let newRes = [...reservoirs];
+        const d = cleanNum(res.diameter);
+        if (d > 0) {
+          res.surfaceArea = Math.PI * Math.pow(d / 2, 2);
+          res.volume = res.surfaceArea * 25 * 7.48;
+        }
+        if (res.id) {
+          const idx = newRes.findIndex(r => r.id === res.id);
+          if (idx >= 0) newRes[idx] = res;
+        } else {
+          res.id = generateId();
+          newRes.push(res);
+        }
+        setReservoirs(newRes);
+        setEditingRes(null);
+      };
+
+      const deleteRes = (id) => {
+        setReservoirs(reservoirs.filter(r => r.id !== id));
+      };
+
+      const runSimulation = () => {
+        if (reservoirs.length === 0) {
+          alert("Add a reservoir first.");
+          return;
+        }
+        const mainRes = reservoirs[0];
+        const area = parseFloat(mainRes.surfaceArea);
+        if (!area || area <= 0) {
+          alert("Reservoir has invalid dimensions.");
+          return;
+        }
+
+        const startLevel = cleanNum(mainRes.currentLevel);
+        const infMGD = cleanNum(cityData.influent);
+        const effMGD = cleanNum(cityData.effluent);
+        const infGPM = infMGD * 694.44;
+        const effGPM = effMGD * 694.44;
+
+        const results = [];
+        let currentLvl = startLevel;
+
+        for (let t = 2; t <= 24; t += 2) {
+          let wellInj = 0;
+          let wellReuse = 0;
+          wells.forEach(w => {
+            const flow = cleanNum(w.currentFlow);
+            const dur = cleanNum(w.duration);
+            const delay = w.mode === 'reuse' ? cleanNum(w.delay) : 0;
+            if (w.mode === 'injection') { if (t <= dur) wellInj += flow; }
+            else if (w.mode === 'reuse') { if (t > delay && t <= delay + dur) wellReuse += flow; }
+          });
+          const netGPM = (infGPM + wellReuse) - (effGPM + wellInj);
+          const lvlChange = (netGPM * 60 * 2) / 7.48 / area;
+          currentLvl += lvlChange;
+          let status = currentLvl < 5 ? 'Low' : currentLvl > 25 ? 'High' : 'OK';
+          results.push({ hour: t, level: round(currentLvl), net: round(netGPM), status });
+        }
+
+        setSimResults(results);
+
+        const endLvl = results[results.length - 1].level;
+        const diff = endLvl - 12;
+        if (Math.abs(diff) < 1) {
+          setRecommendation({ type: 'success', msg: 'Levels projected stable near target.' });
+        } else {
+          const action = diff > 0 ? "Reduce supply / Increase demand" : "Increase supply / Reduce demand";
+          setRecommendation({ type: 'warning', msg: `Trending ${diff > 0 ? 'High' : 'Low'} (${round(diff)} ft). ${action}.` });
+        }
+      };
+
+      return (
+        <div className="space-y-6 animate-slide-up">
+          {/* City Flow Data */}
+          <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 p-6">
+            <h3 className="text-sm font-bold text-water-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Icon name="activity" className="w-4 h-4" /> City Flow Data
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <InputGroup 
+                label="Influent Flow" 
+                value={cityData.influent} 
+                onChange={(v) => setCityData({...cityData, influent: v})} 
+                unit="MGD" 
+              />
+              <InputGroup 
+                label="Effluent Demand" 
+                value={cityData.effluent} 
+                onChange={(v) => setCityData({...cityData, effluent: v})} 
+                unit="MGD" 
+              />
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* ASR Wells */}
+            <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 overflow-hidden">
+              <div className="p-4 border-b border-slate-800/50 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                  <Icon name="settings" className="w-4 h-4" /> ASR Wells
+                </h3>
+                <button 
+                  onClick={() => setEditingWell({})} 
+                  className="bg-emerald-600 text-white p-1.5 rounded-lg hover:bg-emerald-500 transition-colors"
+                >
+                  <Icon name="plus" className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-4 space-y-2 max-h-60 overflow-y-auto scrollbar-thin">
+                {wells.map(w => (
+                  <div key={w.id} className="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl border border-slate-800/30">
+                    <div>
+                      <div className="font-bold text-sm text-white">{w.name}</div>
+                      <div className="text-xs text-slate-500 flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${w.mode === 'injection' ? 'bg-orange-500' : w.mode === 'reuse' ? 'bg-emerald-500' : 'bg-slate-600'}`}></span>
+                        {w.mode?.toUpperCase()} • {w.currentFlow || 0} GPM
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button onClick={() => setEditingWell(w)} className="p-1.5 text-slate-500 hover:text-water-400 transition-colors">
+                        <Icon name="edit2" className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => deleteWell(w.id)} className="p-1.5 text-slate-500 hover:text-red-400 transition-colors">
+                        <Icon name="trash2" className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {wells.length === 0 && (
+                  <div className="text-center py-6 text-slate-600 text-sm border-2 border-dashed border-slate-800 rounded-xl">
+                    No wells configured
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Reservoirs */}
+            <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 overflow-hidden">
+              <div className="p-4 border-b border-slate-800/50 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+                  <Icon name="droplets" className="w-4 h-4" /> Reservoirs
+                </h3>
+                <button 
+                  onClick={() => setEditingRes({})} 
+                  className="bg-cyan-600 text-white p-1.5 rounded-lg hover:bg-cyan-500 transition-colors"
+                >
+                  <Icon name="plus" className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-4 space-y-2 max-h-60 overflow-y-auto scrollbar-thin">
+                {reservoirs.map(r => (
+                  <div key={r.id} className="p-3 bg-slate-900/50 rounded-xl border border-slate-800/30">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="font-bold text-sm text-white">{r.name}</div>
+                        <div className="text-xs text-slate-500">
+                          {r.diameter} ft dia • {formatNum(r.volume)} gal
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <button onClick={() => setEditingRes(r)} className="p-1.5 text-slate-500 hover:text-water-400 transition-colors">
+                          <Icon name="edit2" className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => deleteRes(r.id)} className="p-1.5 text-slate-500 hover:text-red-400 transition-colors">
+                          <Icon name="trash2" className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-end border-t border-slate-800/30 pt-2">
+                      <div>
+                        <span className="text-[10px] uppercase text-slate-600 font-bold">Level</span>
+                        <div className="text-lg font-mono font-bold text-cyan-400">{r.currentLevel || 0} <span className="text-xs text-slate-500">ft</span></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {reservoirs.length === 0 && (
+                  <div className="text-center py-6 text-slate-600 text-sm border-2 border-dashed border-slate-800 rounded-xl">
+                    No reservoirs added
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Run Simulation Button */}
+          <button 
+            onClick={runSimulation}
+            className="w-full py-4 bg-gradient-to-r from-water-600 to-cyan-600 hover:from-water-500 hover:to-cyan-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-water-500/20 transition-all flex items-center justify-center gap-2"
+          >
+            <Icon name="calculator" className="w-5 h-5" /> Run 24-Hour Simulation
+          </button>
+
+          {/* Simulation Results */}
+          {simResults.length > 0 && (
+            <div className="space-y-4 animate-slide-up">
+              {recommendation && (
+                <div className={`p-4 rounded-xl border-l-4 flex gap-4 ${recommendation.type === 'success' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-amber-500/10 border-amber-500 text-amber-400'}`}>
+                  <Icon name={recommendation.type === 'success' ? 'checkCircle2' : 'alertTriangle'} className="w-6 h-6 shrink-0" />
+                  <div>
+                    <div className="font-bold text-sm uppercase tracking-wider mb-1">Recommendation</div>
+                    <div className="text-sm opacity-90">{recommendation.msg}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 p-4 h-72">
+                <CustomChart data={simResults} />
+              </div>
+
+              <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-900/50 text-slate-500 uppercase text-xs">
+                    <tr>
+                      <th className="p-3 text-left">Hour</th>
+                      <th className="p-3 text-left">Net GPM</th>
+                      <th className="p-3 text-left">Level (ft)</th>
+                      <th className="p-3 text-left">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {simResults.map((r, i) => (
+                      <tr key={i} className="text-slate-300">
+                        <td className="p-3 font-mono">+{r.hour}</td>
+                        <td className={`p-3 font-mono ${r.net < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{r.net}</td>
+                        <td className="p-3 font-bold">{r.level}</td>
+                        <td className="p-3">
+                          <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${r.status === 'OK' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                            {r.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Well Edit Modal */}
+          {editingWell !== null && (
+            <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade">
+              <div className="bg-slate-900 rounded-2xl w-full max-w-sm overflow-hidden border border-slate-700">
+                <div className="p-4 border-b border-slate-800 flex justify-between items-center">
+                  <h3 className="font-bold text-lg">Well Configuration</h3>
+                  <button onClick={() => setEditingWell(null)} className="text-slate-500 hover:text-white">
+                    <Icon name="x" className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase">Name</label>
+                    <input 
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mt-1 text-white outline-none focus:border-water-500" 
+                      value={editingWell.name || ''} 
+                      onChange={e => setEditingWell({...editingWell, name: e.target.value})}
+                      placeholder="Well name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase">Mode</label>
+                      <select 
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mt-1 text-white outline-none" 
+                        value={editingWell.mode || 'off'} 
+                        onChange={e => setEditingWell({...editingWell, mode: e.target.value})}
+                      >
+                        <option value="off">Off</option>
+                        <option value="injection">Inject</option>
+                        <option value="reuse">Reuse</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase">Flow</label>
+                      <input 
+                        type="number" 
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mt-1 text-white outline-none" 
+                        placeholder="GPM"
+                        value={editingWell.currentFlow || ''} 
+                        onChange={e => setEditingWell({...editingWell, currentFlow: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  {editingWell.mode !== 'off' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase">Duration (hr)</label>
+                        <input 
+                          type="number" 
+                          className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mt-1 text-white outline-none" 
+                          value={editingWell.duration || ''} 
+                          onChange={e => setEditingWell({...editingWell, duration: e.target.value})}
+                        />
+                      </div>
+                      {editingWell.mode === 'reuse' && (
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 uppercase">Delay (hr)</label>
+                          <input 
+                            type="number" 
+                            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mt-1 text-white outline-none" 
+                            value={editingWell.delay || ''} 
+                            onChange={e => setEditingWell({...editingWell, delay: e.target.value})}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex gap-3 pt-2">
+                    <button onClick={() => setEditingWell(null)} className="flex-1 py-2.5 border border-slate-700 rounded-xl text-slate-400 hover:bg-slate-800 transition-colors">
+                      Cancel
+                    </button>
+                    <button onClick={() => saveWell(editingWell)} className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors font-bold">
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Reservoir Edit Modal */}
+          {editingRes !== null && (
+            <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade">
+              <div className="bg-slate-900 rounded-2xl w-full max-w-sm overflow-hidden border border-slate-700">
+                <div className="p-4 border-b border-slate-800 flex justify-between items-center">
+                  <h3 className="font-bold text-lg">Reservoir</h3>
+                  <button onClick={() => setEditingRes(null)} className="text-slate-500 hover:text-white">
+                    <Icon name="x" className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <input 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none focus:border-water-500" 
+                    placeholder="Name"
+                    value={editingRes.name || ''} 
+                    onChange={e => setEditingRes({...editingRes, name: e.target.value})}
+                  />
+                  <input 
+                    type="number" 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none" 
+                    placeholder="Diameter (ft)"
+                    value={editingRes.diameter || ''} 
+                    onChange={e => setEditingRes({...editingRes, diameter: e.target.value})}
+                  />
+                  <input 
+                    type="number" 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white outline-none" 
+                    placeholder="Current Level (ft)"
+                    value={editingRes.currentLevel || ''} 
+                    onChange={e => setEditingRes({...editingRes, currentLevel: e.target.value})}
+                  />
+                  <div className="flex gap-3 pt-2">
+                    <button onClick={() => setEditingRes(null)} className="flex-1 py-2.5 border border-slate-700 rounded-xl text-slate-400 hover:bg-slate-800 transition-colors">
+                      Cancel
+                    </button>
+                    <button onClick={() => saveRes(editingRes)} className="flex-1 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-500 transition-colors font-bold">
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // FORMULA REFERENCE
+    // ═══════════════════════════════════════════════════════════════
+
+    const FormulaReference = () => {
+      const [search, setSearch] = useState('');
+      const [expandedSection, setExpandedSection] = useState(null);
+
+      const formulas = [
+        {
+          category: "Area & Volume",
+          items: [
+            { name: "Area of Circle", formula: "Area = 0.785 × Diameter²", alt: "Area = π × Radius²" },
+            { name: "Area of Rectangle", formula: "Area = Length × Width" },
+            { name: "Area of Right Triangle", formula: "Area = (Base × Height) / 2" },
+            { name: "Volume of Cylinder", formula: "Volume = 0.785 × Diameter² × Height" },
+            { name: "Volume of Cone", formula: "Volume = (1/3) × 0.785 × Diameter² × Height" },
+            { name: "Volume of Rectangular Tank", formula: "Volume = Length × Width × Height" },
+            { name: "Circumference of Circle", formula: "Circumference = π × Diameter" },
+          ]
+        },
+        {
+          category: "Flow & Velocity",
+          items: [
+            { name: "Flow Rate", formula: "Q = Area × Velocity", note: "Units must be compatible" },
+            { name: "Velocity", formula: "V = Distance / Time", alt: "V = Flow Rate / Area" },
+            { name: "Detention Time", formula: "DT = Volume / Flow", note: "Units must be compatible" },
+          ]
+        },
+        {
+          category: "Loading & Mass",
+          items: [
+            { name: "Loading Rate (lbs/day)", formula: "Load = Flow (MGD) × Concentration (mg/L) × 8.34" },
+            { name: "Loading Rate (kg/day)", formula: "Load = Flow (m³/day) × Concentration (mg/L) × 0.001" },
+            { name: "Mass (lbs)", formula: "Mass = Volume (MG) × Concentration (mg/L) × 8.34" },
+          ]
+        },
+        {
+          category: "Activated Sludge",
+          items: [
+            { name: "F/M Ratio", formula: "F/M = BOD (lbs/day) / MLVSS (lbs)", note: "Typical range: 0.2-0.5" },
+            { name: "MCRT (SRT)", formula: "MCRT = (Aer Tank TSS lb + Clar TSS lb) / (TSS Wasted lb/day + Eff TSS lb/day)" },
+            { name: "RAS Rate (Solids Balance)", formula: "RAS Rate = (MLSS × Flow) / (RAS TSS - MLSS)" },
+            { name: "Return Rate %", formula: "Return % = (Return Flow / Influent Flow) × 100" },
+            { name: "Sludge Volume Index (SVI)", formula: "SVI (mL/g) = (SSV mL/L × 1000) / MLSS (mg/L)" },
+            { name: "Sludge Density Index (SDI)", formula: "SDI = 100 / SVI" },
+          ]
+        },
+        {
+          category: "Clarifier",
+          items: [
+            { name: "Surface Loading Rate (SOR)", formula: "SOR = Flow (gpd) / Surface Area (ft²)", note: "Typical: 300-1000 gpd/ft²" },
+            { name: "Weir Overflow Rate", formula: "WOR = Flow (gpd) / Weir Length (ft)" },
+            { name: "Solids Loading Rate", formula: "SLR = Solids Applied (lbs/day) / Surface Area (ft²)" },
+          ]
+        },
+        {
+          category: "Digester",
+          items: [
+            { name: "VS Reduction (Van Kleeck)", formula: "% Red = [(VS in - VS out) / (VS in - (VS in × VS out))] × 100", note: "VS expressed as decimals" },
+          ]
+        },
+        {
+          category: "Disinfection",
+          items: [
+            { name: "Chlorine Feed Rate", formula: "Feed Rate (lbs/day) = Flow (MGD) × Dose (mg/L) × 8.34 / Purity" },
+            { name: "Chemical Feed Pump (mL/min)", formula: "mL/min = (Flow MGD × Dose mg/L × 3.785 × 1,000,000) / (Density mg/mL × 1,440)" },
+          ]
+        },
+        {
+          category: "Pumps & Horsepower",
+          items: [
+            { name: "Water Horsepower", formula: "WHP = (Flow gpm × Head ft) / 3960" },
+            { name: "Brake Horsepower", formula: "BHP = WHP / Pump Efficiency" },
+            { name: "Motor Horsepower", formula: "MHP = BHP / Motor Efficiency" },
+            { name: "Wire-to-Water Efficiency", formula: "Eff % = (Water HP / Motor HP) × 100" },
+          ]
+        },
+        {
+          category: "Lab & Sampling",
+          items: [
+            { name: "BOD (unseeded)", formula: "BOD = [(Initial DO - Final DO) × 300 mL] / mL Sample" },
+            { name: "BOD (seeded)", formula: "BOD = [(Init DO - Final DO - Seed Correction) × 300] / mL Sample" },
+            { name: "Total Solids %", formula: "TS % = [(Dried Weight - Tare) / (Wet Weight - Tare)] × 100" },
+            { name: "Volatile Solids %", formula: "VS % = [(Dry Solids - Fixed Solids) / Dry Solids] × 100" },
+            { name: "Alkalinity (as CaCO₃)", formula: "Alk = (Titrant mL × Acid Normality × 50,000) / Sample mL" },
+            { name: "Hardness (as CaCO₃)", formula: "Hardness = (Titrant mL × 1000) / Sample mL", note: "When titration factor = 1.00" },
+            { name: "CFU/100mL", formula: "CFU/100mL = (# Colonies × 100) / mL Sample" },
+          ]
+        },
+        {
+          category: "Removal & Efficiency",
+          items: [
+            { name: "Removal Efficiency %", formula: "% Removal = [(In - Out) / In] × 100" },
+            { name: "Solids Capture (Centrifuge)", formula: "Capture = [(Feed% - Centrate%) / (Cake% - Centrate%)] × [Cake% / Feed%] × 100" },
+          ]
+        },
+        {
+          category: "Trickling Filter & RBC",
+          items: [
+            { name: "Organic Loading (TF)", formula: "OLR = BOD (lbs/day) / Volume (ft³)", note: "lbs BOD/day/1000 ft³" },
+            { name: "Hydraulic Loading (TF)", formula: "HLR = Flow (gpd) / Area (ft²)" },
+            { name: "Recirculation Ratio", formula: "R = Recirculated Flow / Primary Effluent Flow" },
+            { name: "Organic Loading (RBC)", formula: "OLR = SBOD (lbs/day) / Surface Area (ft²)" },
+          ]
+        },
+        {
+          category: "Electrical",
+          items: [
+            { name: "Ohm's Law (Amps)", formula: "Amps = Volts / Ohms" },
+            { name: "Electromotive Force", formula: "Volts = Current (amps) × Resistance (ohms)" },
+            { name: "Power (DC)", formula: "Watts = Volts × Amps" },
+            { name: "Power (AC)", formula: "Watts = Volts × Amps × Power Factor" },
+          ]
+        },
+        {
+          category: "Temperature",
+          items: [
+            { name: "Celsius to Fahrenheit", formula: "°F = (°C × 9/5) + 32" },
+            { name: "Fahrenheit to Celsius", formula: "°C = (°F - 32) × 5/9" },
+          ]
+        },
+      ];
+
+      const conversions = [
+        { from: "1 MGD", to: "694.44 GPM = 1.547 CFS" },
+        { from: "1 ft³", to: "7.48 gallons" },
+        { from: "1 gallon water", to: "8.34 lbs" },
+        { from: "1 MG", to: "3.785 ML = 3,785.41 m³" },
+        { from: "1 ft", to: "0.3048 m = 30.48 cm" },
+        { from: "1 lb", to: "0.4536 kg" },
+        { from: "1 psi", to: "2.31 ft of water = 6.895 kPa" },
+        { from: "1 hp", to: "0.746 kW" },
+        { from: "1 acre", to: "43,560 ft²" },
+        { from: "1 acre-ft", to: "325,851 gallons" },
+        { from: "1 grain/gal", to: "17.1 mg/L" },
+        { from: "1 metric ton", to: "2,205 lbs = 1,000 kg" },
+      ];
+
+      const abbrevs = [
+        { abbr: "BOD", meaning: "Biochemical Oxygen Demand" },
+        { abbr: "COD", meaning: "Chemical Oxygen Demand" },
+        { abbr: "DO", meaning: "Dissolved Oxygen" },
+        { abbr: "F/M", meaning: "Food to Microorganism Ratio" },
+        { abbr: "MCRT", meaning: "Mean Cell Residence Time" },
+        { abbr: "MLSS", meaning: "Mixed Liquor Suspended Solids" },
+        { abbr: "MLVSS", meaning: "Mixed Liquor Volatile Suspended Solids" },
+        { abbr: "RAS", meaning: "Return Activated Sludge" },
+        { abbr: "WAS", meaning: "Waste Activated Sludge" },
+        { abbr: "SVI", meaning: "Sludge Volume Index" },
+        { abbr: "SOR", meaning: "Surface Overflow Rate" },
+        { abbr: "SRT", meaning: "Solids Retention Time" },
+        { abbr: "TSS", meaning: "Total Suspended Solids" },
+        { abbr: "VS", meaning: "Volatile Solids" },
+        { abbr: "MGD", meaning: "Million Gallons per Day" },
+        { abbr: "GPM", meaning: "Gallons per Minute" },
+        { abbr: "CFS", meaning: "Cubic Feet per Second" },
+      ];
+
+      const filteredFormulas = formulas.map(cat => ({
+        ...cat,
+        items: cat.items.filter(item => 
+          item.name.toLowerCase().includes(search.toLowerCase()) ||
+          item.formula.toLowerCase().includes(search.toLowerCase()) ||
+          (item.note && item.note.toLowerCase().includes(search.toLowerCase()))
+        )
+      })).filter(cat => cat.items.length > 0);
+
+      return (
+        <div className="space-y-6 animate-slide-up">
+          {/* Search */}
+          <div className="relative">
+            <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search formulas..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl pl-12 pr-4 py-3 text-white outline-none focus:border-water-500/50 transition-colors"
+            />
+          </div>
+
+          {/* Formulas */}
+          <div className="space-y-3">
+            {filteredFormulas.map((cat, catIdx) => (
+              <div key={catIdx} className="bg-slate-900/30 rounded-2xl border border-slate-800/50 overflow-hidden">
+                <button
+                  onClick={() => setExpandedSection(expandedSection === catIdx ? null : catIdx)}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-800/30 transition-colors"
+                >
+                  <span className="font-bold text-white">{cat.category}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-lg">{cat.items.length}</span>
+                    <Icon name={expandedSection === catIdx ? "chevronUp" : "chevronDown"} className="w-5 h-5 text-slate-500" />
+                  </div>
+                </button>
+                {expandedSection === catIdx && (
+                  <div className="border-t border-slate-800/50 p-4 space-y-3">
+                    {cat.items.map((item, idx) => (
+                      <div key={idx} className="p-3 bg-slate-900/50 rounded-xl border border-slate-800/30">
+                        <div className="font-medium text-water-400 text-sm mb-1">{item.name}</div>
+                        <div className="font-mono text-white text-sm">{item.formula}</div>
+                        {item.alt && <div className="font-mono text-slate-500 text-xs mt-1">Alt: {item.alt}</div>}
+                        {item.note && <div className="text-xs text-slate-500 mt-1 italic">{item.note}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Conversions */}
+          <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 overflow-hidden">
+            <button
+              onClick={() => setExpandedSection(expandedSection === 'conv' ? null : 'conv')}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-800/30 transition-colors"
+            >
+              <span className="font-bold text-white flex items-center gap-2">
+                <Icon name="arrowLeftRight" className="w-4 h-4 text-water-400" /> Conversion Factors
+              </span>
+              <Icon name={expandedSection === 'conv' ? "chevronUp" : "chevronDown"} className="w-5 h-5 text-slate-500" />
+            </button>
+            {expandedSection === 'conv' && (
+              <div className="border-t border-slate-800/50 p-4">
+                <div className="grid md:grid-cols-2 gap-2">
+                  {conversions.map((c, idx) => (
+                    <div key={idx} className="p-2 bg-slate-900/50 rounded-lg border border-slate-800/30 flex items-center gap-2">
+                      <span className="font-mono text-water-400 text-sm">{c.from}</span>
+                      <span className="text-slate-600">=</span>
+                      <span className="font-mono text-white text-sm">{c.to}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Abbreviations */}
+          <div className="bg-slate-900/30 rounded-2xl border border-slate-800/50 overflow-hidden">
+            <button
+              onClick={() => setExpandedSection(expandedSection === 'abbr' ? null : 'abbr')}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-800/30 transition-colors"
+            >
+              <span className="font-bold text-white flex items-center gap-2">
+                <Icon name="bookOpen" className="w-4 h-4 text-water-400" /> Abbreviations
+              </span>
+              <Icon name={expandedSection === 'abbr' ? "chevronUp" : "chevronDown"} className="w-5 h-5 text-slate-500" />
+            </button>
+            {expandedSection === 'abbr' && (
+              <div className="border-t border-slate-800/50 p-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {abbrevs.map((a, idx) => (
+                    <div key={idx} className="p-2 bg-slate-900/50 rounded-lg border border-slate-800/30">
+                      <span className="font-mono text-water-400 font-bold">{a.abbr}</span>
+                      <span className="text-slate-500 mx-2">—</span>
+                      <span className="text-slate-300 text-sm">{a.meaning}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // MAIN APP
+    // ═══════════════════════════════════════════════════════════════
+
+    const App = () => {
+      const [activeModule, setActiveModule] = useState('calc');
+      const [activeCalc, setActiveCalc] = useState('tank');
+      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+      const [lastVol, setLastVol] = useLocalStorage("wwp_vol", {});
+      const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+      useEffect(() => {
+        const update = () => setIsOffline(!navigator.onLine);
+        window.addEventListener('online', update);
+        window.addEventListener('offline', update);
+        return () => {
+          window.removeEventListener('online', update);
+          window.removeEventListener('offline', update);
+        };
+      }, []);
+
+      const modules = [
+        { id: 'calc', label: 'Calculators', icon: 'calculator' },
+        { id: 'flowpro', label: 'Flow Simulator', icon: 'trendingUp' },
+        { id: 'formulas', label: 'Formula Reference', icon: 'bookOpen' },
+      ];
+
+      const calcMenus = [
+        { id: "tank", label: "Tank Volume", icon: "cylinder" },
+        { id: "pipe", label: "Pipe Volume", icon: "pipette" },
+        { id: "detention", label: "Detention Time", icon: "timer" },
+        { id: "loading", label: "Loading Rate", icon: "scale" },
+        { id: "clarifier", label: "Clarifier SOR", icon: "circleDot" },
+        { id: "ras", label: "RAS Rate", icon: "repeat" },
+        { id: "fm", label: "F/M Ratio", icon: "bug" },
+        { id: "mcrt", label: "MCRT / SRT", icon: "clock" },
+        { id: "chlorine", label: "Disinfection", icon: "flaskConical" },
+        { id: "digester", label: "Digester VS%", icon: "flame" },
+        { id: "pump", label: "Pump Efficiency", icon: "zap" },
+        { id: "asr", label: "ASR Flow & Ops", icon: "waves" },
+        { id: "convert", label: "Unit Converter", icon: "arrowLeftRight" },
+      ];
+
+      const renderCalc = () => {
+        switch(activeCalc) {
+          case "tank": return <TankVolume setLastVolume={setLastVol} goTo={setActiveCalc} />;
+          case "pipe": return <PipeVolume />;
+          case "loading": return <LoadingRate />;
+          case "ras": return <RASRate />;
+          case "detention": return <DetentionTime lastVol={lastVol} />;
+          case "clarifier": return <Clarifier lastVol={lastVol} />;
+          case "fm": return <FMRatio />;
+          case "mcrt": return <MCRT />;
+          case "chlorine": return <Chlorine />;
+          case "digester": return <Digester />;
+          case "pump": return <PumpCalc />;
+          case "asr": return <ASRCalc />;
+          case "convert": return <UnitConverter />;
+          default: return <TankVolume setLastVolume={setLastVol} goTo={setActiveCalc} />;
+        }
+      };
+
+      const calcTitle = calcMenus.find(m => m.id === activeCalc)?.label || 'Calculator';
+
+      return (
+        <div className="min-h-screen flex flex-col gradient-mesh">
+          {/* Header */}
+          <header className="glass border-b border-slate-800/50 sticky top-0 z-40">
+            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-water-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-water-500/30">
+                  <Icon name="droplets" className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-white font-display tracking-tight">WaterWorks Pro</h1>
+                  <div className="flex items-center gap-2 text-[10px] font-medium">
+                    <span className={`flex items-center gap-1 ${isOffline ? 'text-amber-400' : 'text-emerald-400'}`}>
+                      <Icon name={isOffline ? 'wifiOff' : 'wifi'} className="w-3 h-3" />
+                      {isOffline ? 'Offline' : 'Online'}
+                    </span>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-slate-500">v6.0</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Module Tabs */}
+              <div className="hidden md:flex bg-slate-900/50 rounded-xl p-1 border border-slate-800/50">
+                {modules.map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => setActiveModule(m.id)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                      activeModule === m.id 
+                        ? 'bg-water-600 text-white shadow-lg shadow-water-500/20' 
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Icon name={m.icon} className="w-4 h-4" />
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 text-slate-400 hover:text-white"
+              >
+                <Icon name={mobileMenuOpen ? 'x' : 'menu'} className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Mobile Menu */}
+            {mobileMenuOpen && (
+              <div className="md:hidden border-t border-slate-800/50 p-4 space-y-2 animate-slide-up">
+                {modules.map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => { setActiveModule(m.id); setMobileMenuOpen(false); }}
+                    className={`w-full px-4 py-3 rounded-xl text-left font-medium transition-all flex items-center gap-3 ${
+                      activeModule === m.id 
+                        ? 'bg-water-600 text-white' 
+                        : 'text-slate-400 bg-slate-900/50'
+                    }`}
+                  >
+                    <Icon name={m.icon} className="w-5 h-5" />
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+            {activeModule === 'calc' && (
+              <div className="flex gap-6">
+                {/* Calculator Sidebar */}
+                <aside className="hidden lg:block w-64 shrink-0">
+                  <div className="sticky top-24 space-y-1">
+                    {calcMenus.map(m => (
+                      <button
+                        key={m.id}
+                        onClick={() => setActiveCalc(m.id)}
+                        className={`w-full px-4 py-3 rounded-xl text-left text-sm font-medium transition-all flex items-center gap-3 ${
+                          activeCalc === m.id 
+                            ? 'bg-water-600/20 text-water-400 border border-water-500/30' 
+                            : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                        }`}
+                      >
+                        <Icon name={m.icon} className={`w-4 h-4 ${activeCalc === m.id ? 'text-water-400' : 'text-slate-600'}`} />
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </aside>
+
+                {/* Calculator Content */}
+                <div className="flex-1 min-w-0">
+                  {/* Mobile Calc Selector */}
+                  <div className="lg:hidden mb-6">
+                    <select
+                      value={activeCalc}
+                      onChange={(e) => setActiveCalc(e.target.value)}
+                      className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white font-medium outline-none focus:border-water-500/50"
+                    >
+                      {calcMenus.map(m => (
+                        <option key={m.id} value={m.id}>{m.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-white font-display">{calcTitle}</h2>
+                    <p className="text-slate-500 text-sm mt-1">Enter values below to calculate</p>
+                  </div>
+
+                  <div className="animate-slide-up" key={activeCalc}>
+                    {renderCalc()}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeModule === 'flowpro' && (
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-white font-display">Flow Simulator</h2>
+                  <p className="text-slate-500 text-sm mt-1">Reservoir & Injection Management - 24hr Projection</p>
+                </div>
+                <FlowProSimulator />
+              </div>
+            )}
+
+            {activeModule === 'formulas' && (
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-white font-display">Formula Reference</h2>
+                  <p className="text-slate-500 text-sm mt-1">ABC Certification Formula Sheet & Conversions</p>
+                </div>
+                <FormulaReference />
+              </div>
+            )}
+          </main>
+
+          {/* Footer */}
+          <footer className="border-t border-slate-800/50 py-4 mt-auto">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-slate-600">
+              <div className="flex items-center gap-2">
+                <Icon name="droplets" className="w-4 h-4 text-water-600" />
+                <span>WaterWorks Pro • Offline PWA</span>
+              </div>
+              <div className="text-center">
+                Formulas: ABC Certification • ADEQ Grade 4
+              </div>
+              <div>
+                Add to Home Screen for best experience
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    };
+
+    // Safely Mount React
+    try {
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    } catch (e) {
+      console.error("React Mount Failed:", e);
+      document.getElementById("error-overlay").style.display = "flex";
+      document.getElementById("error-text").innerText = e.message;
+    }
+  </script>
+
+  <!-- SERVICE WORKER -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      try {
+        const swCode = `
+            const CACHE_NAME = 'waterworks-pro-v6';
+            const urlsToCache = [
+                './',
+                'https://cdn.tailwindcss.com',
+                'https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js',
+                'https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js'
+            ];
+            
+            // Install Event
+            self.addEventListener('install', event => {
+                self.skipWaiting();
+                event.waitUntil(
+                    caches.open(CACHE_NAME).then(cache => {
+                        // Robust caching: Promise.allSettled allows some files to fail without crashing installation
+                        return Promise.allSettled(
+                            urlsToCache.map(url => 
+                                fetch(url).then(response => {
+                                    if (!response.ok) throw new Error('Network response for ' + url + ' was not ok');
+                                    return cache.put(url, response);
+                                }).catch(err => console.warn('Failed to cache ' + url, err))
+                            )
+                        );
+                    })
+                );
+            });
+
+            // Fetch Event (Network First for App Shell)
+            self.addEventListener('fetch', event => {
+                // Navigation requests (HTML)
+                if (event.request.mode === 'navigate') {
+                    event.respondWith(
+                        fetch(event.request).catch(() => caches.match('./'))
+                    );
+                    return;
+                }
+
+                // Asset requests
+                event.respondWith(
+                    caches.match(event.request).then(response => {
+                        return response || fetch(event.request);
+                    })
+                );
+            });
+
+            // Activate Event (Cleanup Old Caches)
+            self.addEventListener('activate', event => {
+                event.waitUntil(
+                    caches.keys().then(names => Promise.all(names.map(name => {
+                        if(name !== CACHE_NAME) return caches.delete(name);
+                    })))
+                );
+            });
+        `;
+        const blob = new Blob([swCode], {type: 'text/javascript'});
+        const swUrl = URL.createObjectURL(blob);
+        window.addEventListener('load', () => navigator.serviceWorker.register(swUrl).catch(console.error));
+      } catch (e) {
+        console.warn("Service Worker registration failed (likely iframe restriction):", e);
+      }
+    }
+  </script>
+
+</body>
+</html>
+
