@@ -1,44 +1,38 @@
 # WaWaCa: Wastewater Loading & Prep Suite
 
-A modular web app designed for wastewater operators (Grades 1-4) to perform critical calculations, exam prep while oline and offline. 
+**[Live Demo →](https://thewastewatercalc.app/)**
 
-✨ Core Features
+A modular web app designed for wastewater operators (Grades 1-4) to perform critical calculations, exam prep — online and offline.
 
-A calculator that includes 10+ of the most used wastewater treatment formulas for operators 
+## ✨ Features
 
-Offline-First: Built as a Progressive Web App (PWA) to work in treatment plants with no cell service. (calculator mandatory PWA) others apps fuctional offline only if app supports a PWA design
+- **13 Calculators** — Tank Volume, Pipe Volume, Detention Time, Loading Rate, Clarifier SOR, RAS Rate, F/M Ratio, MCRT/SRT, Disinfection, Digester VS%, Pump Efficiency, ASR Flow & Ops, Unit Converter
+- **Flow Simulator** — 24-hour reservoir & injection management projections
+- **Formula Reference** — Searchable ABC Certification formula sheet with conversions and abbreviations
+- **Offline-First** — Built as a Progressive Web App (PWA) to work in treatment plants with no cell service
+- **Operator-Friendly UI** — High-contrast colors and large, glove-friendly buttons
+- **Single-File App** — One `index.html` file, zero build steps, zero dependencies to install
 
-Operator-Friendly UI: High-contrast colors and large, glove-friendly buttons.
+## 🚀 Quick Start
 
-🚀 Quick Start
+Just open `index.html` in a browser. That's it.
 
-To run this project on your machine, you will need Node.js installed.
+Or visit the live app: **https://thewastewatercalc.app/**
 
-Clone the project: git clone [your-repository-url]
+## 🛠 Tech Stack
 
-Install dependencies: npm install
+- **React 18** (CDN, in-browser JSX via Babel)
+- **Tailwind CSS** (CDN)
+- **Lucide Icons**
+- **PWA** with Service Worker for offline caching
 
-Run in development mode: npm run dev
+## 📅 Roadmap
 
-🛠 Tech Stack
+- [x] Phase 1: Wastewater Treatment Calculator (MVP)
+- [ ] Phase 2: Grade 3 & 4 Exam Prep Quiz & Study Engine
+- [ ] Phase 3: Lab Analysis Data Dashboard
+- [ ] Phase 4: ASR Well Digital Twin Visualization
 
-Framework: Vite + React
+## ⚖️ License
 
-Language: JavaScript / JSX
-
-PWA Support: vite-plugin-pwa for offline capabilities.
-
-📅 Roadmap
-
-[ ] Phase 1: Wastewater Treatment Calculator (MVP)
-
-[ ] Phase 2: Grade 3 & 4 Exam Prep Quiz & study Engine
-
-[ ] Phase 3: Lab Analysis Data Dashboard
-
-[ ] Phase 4: ASR Well Digital Twin Visualization
-
-⚖️ License
-
-This project is licensed under the MIT License.
-wastewater treatment Operator web apps 
+MIT License
