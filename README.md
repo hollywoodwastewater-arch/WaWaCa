@@ -15,8 +15,6 @@ A modular web app designed for wastewater operators (Grades 1-4) to perform crit
 
 ## 🚀 Quick Start
 
-Just open `index.html` in a browser. That's it.
-
  live app: **https://thewastewatercalc.app/**
 
 ## 🛠 Tech Stack
