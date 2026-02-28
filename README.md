@@ -31,7 +31,7 @@ Or visit the live app: **https://thewastewatercalc.app/**
 - [x] Phase 1: Wastewater Treatment Calculator (MVP)
 - [ ] Phase 2: Grade 3 & 4 Exam Prep Quiz & Study Engine
 - [ ] Phase 3: Lab Analysis Data Dashboard
-- [ ] Phase 4: ASR Well Digital Twin Visualization
+- [x] Phase 4: ASR Well Digital Twin Visualization
 
 ## ⚖️ License
 
